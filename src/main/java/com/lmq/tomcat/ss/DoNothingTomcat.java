@@ -8,6 +8,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 
+import com.lmq.tomcat.ss.request.HttpRequest;
+
 public class DoNothingTomcat {
 
 	private volatile boolean shutdown = false;
@@ -23,13 +25,31 @@ public class DoNothingTomcat {
 			byte[] buffer = new byte[2048];
 			int length = bin.read(buffer);
 			if (length >= 0) {
-				System.out.println(new String(Arrays.copyOf(buffer, length)));
+				HttpRequest request = HttpRequest.from(new String(Arrays.copyOf(buffer, length)));
+				System.out.println(request);
+				if ("/shutdown".equalsIgnoreCase(request.getUrl())) {
+					out.write("HTTP/1.1 OK\r\nContent-Type: text/plain\r\nContent-Length: 8\r\n\r\nshutdown".getBytes());
+					this.shutdown();
+				} else if ("/favicon.ico".equalsIgnoreCase(request.getUrl())) {
+					out.write("HTTP/1.1 200 OK\r\nContent-Type: image/x-icon\r\nContent-Length: 1150\r\n\r\n".getBytes());
+					InputStream iconIns = DoNothingTomcat.class.getClassLoader().getResourceAsStream("favicon.ico");
+					int i = 0;
+					byte[] buffer2 = new byte[1024];
+					while ((i = iconIns.read(buffer2)) > 0) {
+						out.write(buffer2, 0, i);
+					}
+				} else {
+					out.write("HTTP/1.1 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\n\r\nOK".getBytes());
+				}
 			}
-			out.write("HTTP/1.1 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\n\r\nOK".getBytes());
 			in.close();
 			out.close();
 			socket.close();
 		}
 		ss.close();
+	}
+	
+	public void shutdown() {
+		this.shutdown = true;
 	}
 }
