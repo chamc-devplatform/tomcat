@@ -16,6 +16,6 @@ public class Pair<F, S> {
 	
 	public static Pair<String, String> of(String str) {
 		String[] ss = str.split(":");
-		return new Pair<>(ss[0], ss[1]);
+		return new Pair<>(ss[0].trim(), ss[1].trim());
 	}
 }
