@@ -15,7 +15,7 @@ import com.lmq.tomcat.ss.response.HttpResponse;
 public class ConcurrentTomcat extends DoNothingTomcat {
 
 	private static final int THREADS = 10;
-	private static final String TEMPLATES = "lte";
+	private static final String BASE_PATH = "lte";
 	private static final String TEXT_HTML = "text/html";
 	private static final String CONTEXT_PATH = "/lte";
 	
@@ -63,7 +63,7 @@ public class ConcurrentTomcat extends DoNothingTomcat {
 			if (index2 > -1) {
 				path = path.substring(0, index2);
 			}
-			InputStream in = ConcurrentTomcat.class.getClassLoader().getResourceAsStream(TEMPLATES + path);
+			InputStream in = ConcurrentTomcat.class.getClassLoader().getResourceAsStream(BASE_PATH + path);
 			if (Objects.nonNull(in)) {
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				byte[] buffer = new byte[1024];

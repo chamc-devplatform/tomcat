@@ -11,7 +11,7 @@ import com.lmq.tomcat.ss.response.HttpResponse;
 
 public class StaticTomcat extends DoNothingTomcat {
 
-	private static final String TEMPLATES = "templates";
+	private static final String BASE_PATH = "java";
 	private static final String TEXT_HTML = "text/html";
 	private static final String CONTEXT_PATH = "/java";
 
@@ -21,7 +21,7 @@ public class StaticTomcat extends DoNothingTomcat {
 		int index = url.indexOf(CONTEXT_PATH);
 		if (index > -1) {
 			String path = url.substring(index + CONTEXT_PATH.length());
-			InputStream in = StaticTomcat.class.getClassLoader().getResourceAsStream(TEMPLATES + path);
+			InputStream in = StaticTomcat.class.getClassLoader().getResourceAsStream(BASE_PATH + path);
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			byte[] buffer = new byte[1024];
 			int length = 0;
