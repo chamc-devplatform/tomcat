@@ -29,11 +29,32 @@ public class ConcurrentTomcat extends DoNothingTomcat {
 	protected void service(Socket socket, OutputStream out, HttpRequest request) throws IOException {
 		System.out.println(request);
 		this.executor.execute(new RequestHanlder(socket, out, request));
-//		this.serviceWithoutThread(socket, out, request);
+//		this.serviceOnce(socket, out, request);
 	}
 	
-	@SuppressWarnings("unused")
-	private void serviceWithoutThread(Socket socket, OutputStream out, HttpRequest request) throws IOException {
+	private class RequestHanlder implements Runnable {
+		
+		private Socket socket;
+		private OutputStream out;
+		private HttpRequest request;
+		
+		public RequestHanlder(Socket socket, OutputStream out, HttpRequest request) {
+			this.socket = socket;
+			this.out = out;
+			this.request = request;
+		}
+		
+		@Override
+		public void run() {
+			try {
+				ConcurrentTomcat.this.serviceOnce(socket, out, request);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void serviceOnce(Socket socket, OutputStream out, HttpRequest request) throws IOException {
 		String url = request.getUrl();
 		int index = url.indexOf(CONTEXT_PATH);
 		if (index > -1) {
@@ -85,45 +106,4 @@ public class ConcurrentTomcat extends DoNothingTomcat {
 		return TEXT_HTML;
 	}
 
-	private class RequestHanlder implements Runnable {
-		
-		private Socket socket;
-		private OutputStream out;
-		private HttpRequest request;
-		
-		public RequestHanlder(Socket socket, OutputStream out, HttpRequest request) {
-			this.socket = socket;
-			this.out = out;
-			this.request = request;
-		}
-		
-		@Override
-		public void run() {
-			try {
-				String url = request.getUrl();
-				int index = url.indexOf(CONTEXT_PATH);
-				if (index > -1) {
-					String path = url.substring(index + CONTEXT_PATH.length());
-					int index2 = path.indexOf('?');
-					if (index2 > -1) {
-						path = path.substring(0, index2);
-					}
-					InputStream in = ConcurrentTomcat.class.getClassLoader().getResourceAsStream(TEMPLATES + path);
-					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					byte[] buffer = new byte[1024];
-					int length = 0;
-					while ((length = in.read(buffer)) > -1) {
-						bos.write(buffer, 0, length);
-					}
-					HttpResponse response = HttpResponse.ok(bos.toByteArray(), ConcurrentTomcat.this.getContentTypeByPath(path));
-					out.write(response.toBytes());
-					socket.close();
-				} else {
-					ConcurrentTomcat.this.doNothing(socket, out, request);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
 }
